@@ -117,6 +117,10 @@ svg text{font-family:var(--f-ui)}
 .imgside textarea:focus{outline:2px solid var(--accent);border-color:transparent}
 .btnrow{display:flex;flex-wrap:wrap;gap:8px}
 .btn.ghost{background:transparent;color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+a.btn,label.btn{text-decoration:none;display:inline-block}
+label.btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+ol.steps{margin:0;padding-left:1.3em;font-size:13.5px;color:var(--ink-2);display:flex;flex-direction:column;gap:4px}
+ol.steps b{color:var(--ink);font-weight:600}
 .btn:disabled{opacity:.55;cursor:progress}
 .imgside a{color:var(--accent)}
 @media (max-width:980px){.imgwrap{grid-template-columns:minmax(0,1fr)}.frame{max-width:520px}}
@@ -248,10 +252,24 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
               <p class="hint">계정이나 설치 없이 브라우저가 직접 그립니다. 감정 비율이 색의 양을, 시에 나온 소재(달·별·꽃·길·물 등)가 화면의 사물을 정합니다. ‘다시 그리기’를 누를 때마다 구도가 바뀝니다.</p>
             </div>
             <div id="aiPanel" hidden style="display:flex;flex-direction:column;gap:12px">
+              <p class="label" style="margin:0">Gemini로 만들기 · 무료 Google 계정</p>
+              <ol class="steps">
+                <li><b>프롬프트 복사 후 Gemini 열기</b>를 누릅니다.</li>
+                <li>새 탭의 Gemini 입력창에 붙여 넣고(Ctrl+V) 보냅니다.</li>
+                <li>완성된 그림을 내려받은 뒤 <b>이미지 불러오기</b>로 가져오면 이 자리에 나타납니다. 수묵화 탭과 오가며 비교해 보세요.</li>
+              </ol>
               <label class="label" for="prompt" style="margin:0">프롬프트 (고쳐 써도 됩니다)</label>
               <textarea id="prompt"></textarea>
-              <div class="btnrow"><button type="button" class="btn" id="genAI">AI로 생성</button><button type="button" class="btn ghost" id="copyPrompt">프롬프트 복사</button></div>
-              <p class="hint" id="aiNote">가입이나 API 키가 필요 없는 Pollinations.ai 무료 API로 생성하며, 10–40초쯤 걸립니다. 같은 프롬프트를 Microsoft Designer, Google Gemini, ChatGPT 무료 계정에 붙여 넣어 비교해 봐도 좋습니다.</p>
+              <div class="btnrow">
+                <a class="btn" id="openGemini" href="https://gemini.google.com/app" target="_blank" rel="noopener">프롬프트 복사 후 Gemini 열기</a>
+                <button type="button" class="btn ghost" id="copyPrompt">프롬프트만 복사</button>
+              </div>
+              <div class="btnrow">
+                <label class="btn ghost" for="upImg" tabindex="0">이미지 불러오기</label>
+                <input type="file" id="upImg" accept="image/*" hidden>
+                <button type="button" class="btn ghost" id="genAI">빠른 생성 (Pollinations · 품질 낮음)</button>
+              </div>
+              <p class="hint" id="aiNote">Gemini 앱은 무료 Google 계정으로 하루 몇 장까지 그림을 만들 수 있고, 하루 한도는 Google 정책에 따라 바뀝니다. 같은 프롬프트를 ChatGPT나 Microsoft Designer 무료 계정에 붙여 넣어 결과를 비교해 봐도 좋습니다.</p>
               <p class="hint" id="aiLink"></p>
             </div>
           </div>
@@ -861,6 +879,31 @@ function paintArt(p,v){
   $('artFacts').innerHTML=`<dt>색</dt><dd>${em.filter(e=>e.v>.04).slice(0,4).map(e=>`<span class="chip" style="margin:0 4px 4px 0"><i style="background:${PIG[e.k]}"></i>${EMOS.find(x=>x.k===e.k).name} ${pct(e.v)}%</span>`).join('')}</dd>`+
     `<dt>소재</dt><dd>${names.join(', ')}</dd><dt>규칙</dt><dd>${rules.map(esc).join('<br>')}</dd><dt>글씨</dt><dd>핵심 구절을 세로로 썼습니다</dd>`;
 }
+const SCENE_KO={
+  azalea:'떠나는 임의 길 위에 진달래꽃을 한 아름 뿌리는 여인, 봄날의 영변 약산',
+  chohon:'해가 지는 외딴 산 위에서 텅 빈 하늘을 향해 사랑하던 사람의 이름을 부르는 사람, 멀리서 슬피 우는 사슴 무리',
+  sanyuhwa:'저만치 혼자 피어 있는 산꽃과 그 곁에서 우는 작은 새, 피고 지기를 되풀이하는 꽃',
+  seosi:'별이 가득한 밤하늘을 우러러보는 젊은이, 바람에 흔들리는 잎새, 그 앞으로 이어진 길',
+  jahwasang:'가을 논가의 외딴 우물에 비친 달과 구름과 하늘, 그 속에 비친 한 사나이의 얼굴',
+  silence:'단풍나무 숲으로 난 작은 길, 막 떠나간 임의 뒷모습, 티끌이 되어 흩날리는 황금빛 꽃잎, 깊은 침묵',
+  gwangya:'태초의 하늘 아래 눈 내리는 끝없는 광야, 홀로 향기를 피우는 매화 한 가지, 먼 지평선에서 백마를 타고 오는 사람',
+  hyangsu:'금빛 저녁노을 속 시골 마을, 굽이도는 실개천, 얼룩백이 황소, 성근 별 아래 초가지붕',
+  moran:'오월의 무더운 날 활짝 핀 붉은 모란과 뚝뚝 떨어지는 꽃잎, 찬란하면서도 슬픈 봄',
+  window:'밤에 홀로 성에 낀 유리창 앞에 선 아버지, 유리 너머로 반짝이는 물 먹은 별 하나, 날아가는 산새'
+};
+function buildPromptKo(p,v){
+  const t=topIdx(v).filter(i=>v[i]>.05).slice(0,3);
+  const names=[...motifsOf(p)].map(k=>MOTIFS.find(m=>m.k===k).name);
+  const scene=SCENE_KO[p.id]||`시에 나오는 소재(${names.join(', ')||'자연'})가 어우러진 서정적인 풍경`;
+  const key=p.key||(p.lex.lines.map(l=>[sum(l.c),l.t]).sort((a,b)=>b[0]-a[0])[0]||[0,''])[1];
+  return [`한국 시 「${p.title}」(${p.poet})의 정서를 담은 그림을 그려 주세요.`,
+    `- 장면: ${scene}`,
+    key?`- 핵심 구절: “${key}”`:'',
+    `- 정서: ${t.map(i=>`${EMOS[i].name} ${pct(v[i])}%`).join(', ')}. 가장 강한 정서인 ‘${EMOS[t[0]].name}’이 화면 전체의 색과 빛을 정하게 해 주세요.`,
+    names.length?`- 꼭 넣을 소재: ${names.join(', ')}`:'',
+    `- 화풍: 한지 위에 그린 수묵 담채화, 절제된 색, 넉넉한 여백`,
+    `- 세로 3:4 비율. 그림 안에 글자, 서명, 낙관은 넣지 마세요.`].filter(Boolean).join('\n');
+}
 function buildPrompt(p,v){const t=topIdx(v).filter(i=>v[i]>.05).slice(0,3).map(i=>EMO_EN[EMOS[i].k]);
   const scene=SCENE[p.id]||('a poetic Korean landscape with '+[...motifsOf(p)].map(k=>MOTIF_EN[k]).join(', '));
   return `Korean ink wash painting (sumukhwa) with soft watercolor on hanji paper: ${scene}. Mood: ${t.join(', ')}. Muted earthy colors, poetic, generous empty space, no text, no letters.`}
@@ -868,9 +911,9 @@ const framed=(()=>{try{return window.self!==window.top}catch(e){return true}})()
 function setMode(m){imgMode=m;$('tabArt').setAttribute('aria-selected',m==='art');$('tabAI').setAttribute('aria-selected',m==='ai');
   $('artPanel').hidden=m!=='art';$('aiPanel').hidden=m!=='ai';$('art').hidden=m!=='art';
   const has=$('aiImg').dataset.loaded==='1';$('aiImg').hidden=m!=='ai'||!has;
-  const st=$('aiState');if(m==='ai'&&!has&&!st.dataset.busy){st.hidden=false;if(!st.textContent)st.textContent='‘AI로 생성’을 누르면 이 자리에 그림이 나타납니다.'}else if(m!=='ai')st.hidden=true}
+  const st=$('aiState');if(m==='ai'&&!has&&!st.dataset.busy){st.hidden=false;if(!st.textContent)st.textContent='Gemini에서 만든 그림을 ‘이미지 불러오기’로 가져오면 이 자리에 나타납니다.'}else if(m!=='ai')st.hidden=true}
 function renderImage(p,v){
-  if(promptFor!==p.id){promptFor=p.id;$('prompt').value=buildPrompt(p,v);const img=$('aiImg');img.dataset.loaded='';img.hidden=true;$('aiState').textContent='';$('aiLink').textContent='';}
+  if(promptFor!==p.id){promptFor=p.id;$('prompt').value=buildPromptKo(p,v);const img=$('aiImg');img.dataset.loaded='';img.hidden=true;$('aiState').textContent='';$('aiLink').textContent='';}
   const draw=()=>paintArt(p,v);
   if(fontsReady)draw();else{draw();Promise.all([document.fonts.load('44px "Song Myung"'),document.fonts.load('34px "Gowun Batang"')]).then(()=>{fontsReady=true;draw()}).catch(()=>{fontsReady=true})}
   setMode(imgMode);
@@ -879,13 +922,19 @@ $('tabArt').onclick=()=>setMode('art');$('tabAI').onclick=()=>setMode('ai');
 $('redraw').onclick=()=>{artSeed++;const p=all().find(q=>q.id===selId);paintArt(p,finalVec(p))};
 if(framed){$('saveArt').hidden=true}
 $('saveArt').onclick=()=>{$('art').toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);const p=all().find(q=>q.id===selId);a.download=`${p.title}_감정수묵화.png`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000)},'image/png')};
-$('copyPrompt').onclick=async()=>{const b=$('copyPrompt');try{await navigator.clipboard.writeText($('prompt').value);b.textContent='복사됨'}catch(e){$('prompt').select();b.textContent='선택됨 · Ctrl+C'}setTimeout(()=>b.textContent='프롬프트 복사',1800)};
+$('copyPrompt').onclick=async()=>{const b=$('copyPrompt');try{await navigator.clipboard.writeText($('prompt').value);b.textContent='복사됨'}catch(e){$('prompt').select();b.textContent='선택됨 · Ctrl+C'}setTimeout(()=>b.textContent='프롬프트만 복사',1800)};
+$('openGemini').addEventListener('click',()=>{const n=$('aiLink');
+  navigator.clipboard.writeText($('prompt').value).then(()=>{n.textContent='프롬프트를 복사했습니다. Gemini 입력창에 붙여 넣으세요(Ctrl+V).'},()=>{$('prompt').select();n.textContent='자동 복사가 막혔습니다. 선택된 프롬프트를 Ctrl+C로 복사해 Gemini에 붙여 넣으세요.'})});
+$('upImg').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{const img=$('aiImg');img.onload=null;img.onerror=null;img.src=rd.result;img.dataset.loaded='1';$('aiState').hidden=true;if(imgMode==='ai')img.hidden=false;
+    $('aiLink').textContent=`불러온 이미지: ${f.name}`};rd.readAsDataURL(f);e.target.value=''});
+$('upImg').previousElementSibling.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('upImg').click()}});
 $('genAI').onclick=()=>{
-  const prompt=$('prompt').value.trim();if(!prompt){$('prompt').focus();return}
+  const cp=all().find(q=>q.id===selId);const prompt=buildPrompt(cp,finalVec(cp));
   const seed=Math.floor(Math.random()*1e6);const url=`https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=768&height=1024&seed=${seed}&nologo=true`;
   const img=$('aiImg'),st=$('aiState'),b=$('genAI');b.disabled=true;b.textContent='생성 중…';st.dataset.busy='1';st.hidden=false;img.hidden=true;
   st.textContent='그림을 그리는 중입니다. 10–40초쯤 걸립니다.';$('aiLink').textContent='';
-  let done=false;const finish=()=>{done=true;b.disabled=false;b.textContent='다시 생성';delete st.dataset.busy};
+  let done=false;const finish=()=>{done=true;b.disabled=false;b.textContent='빠른 생성 (Pollinations · 품질 낮음)';delete st.dataset.busy};
   const to=setTimeout(()=>{if(done)return;finish();img.src='';st.textContent='응답이 너무 늦습니다. 잠시 뒤 다시 누르거나, 프롬프트를 복사해 다른 무료 도구에서 만들어 보세요.'},70000);
   img.onload=()=>{if(done)return;clearTimeout(to);finish();img.dataset.loaded='1';st.hidden=true;if(imgMode==='ai')img.hidden=false;
     $('aiLink').innerHTML=`<a href="${url}" target="_blank" rel="noopener">원본 이미지 새 탭에서 열기</a> · 이미지 제공: Pollinations.ai`};
