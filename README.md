@@ -3,7 +3,7 @@
 한국 근대시 10편의 정서를 **감정 사전**과 **문학적 해석**으로 함께 분석하는 웹앱입니다.
 시를 고르면 감정 분포, 행별 감정 흐름, 시어–감정–주제 다이어그램, 감정 이미지, 비슷한 감성의 시 추천을 볼 수 있습니다.
 
-**바로 보기:** https://YOUR-ID.github.io/korean-poetry-emotion-map/
+**바로 보기:** https://seokhee5hs.github.io/korean-poetry-emotion-map/
 
 설치나 회원가입 없이 웹 브라우저만 있으면 됩니다. 파일은 `index.html` 하나입니다.
 
