@@ -7,7 +7,7 @@ https://hyunjin0607.github.io/korean-poetry-emotion-map/
 ## 작품 목록
 
 1. 진달래꽃 - 김소월
-2. 초혼 - 김소월
+2. 초혼 - 김소월a
 3. 산유화 - 김소월
 4. 서시 - 윤동주
 5. 자화상 - 윤동주
